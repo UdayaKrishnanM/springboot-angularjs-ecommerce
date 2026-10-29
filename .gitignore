@@ -5,7 +5,7 @@ target/
 # IDE
 .idea/
 *.iml
-.vscode/
+.vscode/ 
 
 # Secrets - NEVER commit these
 src/main/resources/application.properties
