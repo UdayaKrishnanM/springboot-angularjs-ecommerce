@@ -205,9 +205,3 @@ Tests cover: UserService (registration, login, device management), ProductServic
 
 ---
 
-## What I'd improve next
-
-- Add Elasticsearch for full-text product search
-- Add an address/shipping model
-- Add admin analytics endpoints (revenue by date, top products)
-- Deploy to AWS EC2 with RDS and ElastiCache
