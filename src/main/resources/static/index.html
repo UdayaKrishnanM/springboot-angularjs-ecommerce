@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en" ng-app="shop" ng-strict-di>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Threadline</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23b4532a'/%3E%3Cpath d='M9 11h14M16 11v12' stroke='%23fff' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+</head>
+<body ng-controller="ShellController as shell" ng-cloak>
+
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a class="brand" href="#!/">Threadline<span class="brand-dot">.</span></a>
+
+      <button class="menu-btn" type="button" ng-if="shell.auth.isLoggedIn()" ng-click="shell.menuOpen = !shell.menuOpen"
+              aria-label="Menu" aria-expanded="{{ shell.menuOpen }}">☰</button>
+
+      <nav class="nav" ng-if="shell.auth.isLoggedIn()" ng-class="{open: shell.menuOpen}" aria-label="Main">
+        <!-- Customer -->
+        <a href="#!/shop"       ng-if="shell.auth.isCustomer()" ng-class="{active: shell.isActive('/shop') || shell.isActive('/product')}">Shop</a>
+        <a href="#!/orders"     ng-if="shell.auth.isCustomer()" ng-class="{active: shell.isActive('/orders') || shell.isActive('/pay')}">Orders</a>
+        <a href="#!/my-reviews" ng-if="shell.auth.isCustomer()" ng-class="{active: shell.isActive('/my-reviews')}">Reviews</a>
+        <!-- Admin -->
+        <a href="#!/admin"          ng-if="shell.auth.isAdmin()" ng-class="{active: shell.isActive('/admin')}">Overview</a>
+        <a href="#!/admin/products" ng-if="shell.auth.isAdmin()" ng-class="{active: shell.isActive('/admin/products')}">Products</a>
+        <a href="#!/admin/orders"   ng-if="shell.auth.isAdmin()" ng-class="{active: shell.isActive('/admin/orders')}">Orders</a>
+        <a href="#!/admin/reviews"  ng-if="shell.auth.isAdmin()" ng-class="{active: shell.isActive('/admin/reviews')}">Reviews</a>
+
+        <span class="nav-spacer"></span>
+        <a href="#!/account" ng-class="{active: shell.isActive('/account')}" title="Account">
+          {{ shell.auth.user().username }}
+          <span class="role-tag" ng-if="shell.auth.isAdmin()">admin</span>
+        </a>
+        <a href="#!/cart" class="cart-link" ng-if="shell.auth.isCustomer()" ng-class="{active: shell.isActive('/cart')}">
+          Bag <span class="badge" ng-if="shell.cart.count()">{{ shell.cart.count() }}</span>
+        </a>
+        <button type="button" class="linklike" ng-click="shell.signOut()">Sign out</button>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="wrap main" ng-view></main>
+
+  <footer class="wrap footer muted">
+    Threadline · AngularJS frontend for the Spring Boot e-commerce API
+  </footer>
+
+  <!-- Toasts -->
+  <div class="toasts" aria-live="polite">
+    <div class="toast" ng-repeat="t in toasts track by t.id" ng-class="'toast-' + t.kind" role="status">
+      <span>{{ t.text }}</span>
+      <button type="button" class="toast-x" ng-click="dismissToast(t)" aria-label="Dismiss">×</button>
+    </div>
+  </div>
+
+  <!-- Shared validation messages (used with ng-messages-include="tl-messages") -->
+  <script type="text/ng-template" id="tl-messages">
+    <span ng-message="required">This field is required.</span>
+    <span ng-message="email, emailStrict">Enter a valid email address, like name@example.com.</span>
+    <span ng-message="minlength">Too short.</span>
+    <span ng-message="maxlength">Too long.</span>
+    <span ng-message="min">Value is too small.</span>
+    <span ng-message="max">Value is too large.</span>
+    <span ng-message="number">Enter a number.</span>
+    <span ng-message="integer">Enter a whole number.</span>
+    <span ng-message="decimals">Use at most 2 decimal places.</span>
+    <span ng-message="pattern">Invalid format.</span>
+    <span ng-message="match">Doesn't match.</span>
+    <span ng-message="blank">Can't be only spaces.</span>
+  </script>
+
+  <script src="vendor/angular.min.js"></script>
+  <script src="vendor/angular-route.min.js"></script>
+  <script src="vendor/angular-messages.min.js"></script>
+
+  <script src="app/app.js"></script>
+  <script src="app/core/config.js"></script>
+  <script src="app/core/auth.js"></script>
+  <script src="app/core/http.js"></script>
+  <script src="app/validation/validators.js"></script>
+  <script src="app/shared/ui.js"></script>
+  <script src="app/features/auth/auth.js"></script>
+  <script src="app/features/shop/shop.js"></script>
+  <script src="app/features/cart/cart.js"></script>
+  <script src="app/features/orders/orders.js"></script>
+  <script src="app/features/account/account.js"></script>
+  <script src="app/features/admin/admin.js"></script>
+</body>
+</html>

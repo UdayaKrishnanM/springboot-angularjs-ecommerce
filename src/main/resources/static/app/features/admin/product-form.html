@@ -1,0 +1,103 @@
+<p><a href="#!/admin/products" class="back">← Products</a></p>
+
+<div class="page-head">
+  <div>
+    <p class="eyebrow">Store admin</p>
+    <h1 class="display">{{ vm.isEdit ? 'Edit product' : 'New product' }}</h1>
+  </div>
+</div>
+
+<div class="loading" ng-if="vm.loading">Loading…</div>
+<div class="empty" ng-if="vm.notFound"><h3>Product not found</h3><a href="#!/admin/products">Back to products</a></div>
+
+<form name="productForm" class="card product-form" novalidate tl-focus-invalid ng-if="!vm.loading && !vm.notFound" ng-submit="vm.save(productForm)">
+  <div class="alert alert-error" ng-if="vm.error" role="alert">{{ vm.error }}</div>
+
+  <div class="field" ng-class="{invalid: showErrors(productForm, 'name')}">
+    <label for="pf-name">Name</label>
+    <input id="pf-name" name="name" type="text" ng-model="vm.form.name" required tl-not-blank ng-minlength="2" ng-maxlength="100">
+    <div class="errors" ng-messages="productForm.name.$error" ng-if="showErrors(productForm, 'name')" role="alert">
+      <span ng-message="minlength">Name must be at least 2 characters.</span>
+      <span ng-message="maxlength">Name must be 100 characters or fewer.</span>
+      <div ng-messages-include="tl-messages"></div>
+    </div>
+  </div>
+
+  <div class="field" ng-class="{invalid: showErrors(productForm, 'description')}">
+    <label for="pf-desc">Description</label>
+    <textarea id="pf-desc" name="description" rows="4" ng-model="vm.form.description"
+              required tl-not-blank ng-minlength="10" ng-maxlength="255"></textarea>
+    <small class="hint counter">{{ (productForm.description.$viewValue || '').length }}/255</small>
+    <div class="errors" ng-messages="productForm.description.$error" ng-if="showErrors(productForm, 'description')" role="alert">
+      <span ng-message="minlength">Write at least 10 characters.</span>
+      <span ng-message="maxlength">Keep it to 255 characters (the database column limit).</span>
+      <div ng-messages-include="tl-messages"></div>
+    </div>
+  </div>
+
+  <!-- duplicate check: backend rejects same name + same description -->
+  <input type="hidden" name="duplicate" ng-model="vm.checks.duplicate" tl-valid-if="!vm.isDuplicate()" tl-valid-key="duplicate">
+  <div class="errors" ng-if="productForm.duplicate.$error.duplicate && (productForm.name.$touched || productForm.$submitted)" role="alert">
+    A product with this exact name and description already exists.
+  </div>
+
+  <div class="row-2">
+    <div class="field" ng-class="{invalid: showErrors(productForm, 'price')}">
+      <label for="pf-price">Price (₹)</label>
+      <input id="pf-price" name="price" type="number" step="0.01" ng-model="vm.form.price"
+             required min="1" max="1000000" tl-decimals="2">
+      <div class="errors" ng-messages="productForm.price.$error" ng-if="showErrors(productForm, 'price')" role="alert">
+        <span ng-message="min">Price must be at least ₹1.</span>
+        <span ng-message="max">Price can't be more than ₹10,00,000.</span>
+        <div ng-messages-include="tl-messages"></div>
+      </div>
+    </div>
+
+    <div class="field" ng-class="{invalid: showErrors(productForm, 'category')}">
+      <label for="pf-cat">Category</label>
+      <input id="pf-cat" name="category" type="text" list="pf-cats" ng-model="vm.form.category"
+             required tl-not-blank ng-maxlength="40" ng-pattern="/^[A-Za-z][A-Za-z &\-]*$/">
+      <datalist id="pf-cats"><option ng-repeat="c in vm.categories" value="{{ c }}"></option></datalist>
+      <small class="hint" ng-if="vm.categories.length">Pick an existing one to keep the shop filter tidy.</small>
+      <div class="errors" ng-messages="productForm.category.$error" ng-if="showErrors(productForm, 'category')" role="alert">
+        <span ng-message="pattern">Use letters, spaces, &amp; or hyphens.</span>
+        <span ng-message="maxlength">Keep it under 40 characters.</span>
+        <div ng-messages-include="tl-messages"></div>
+      </div>
+    </div>
+  </div>
+
+  <fieldset class="field" ng-class="{invalid: showErrors(productForm, 'sizes')}">
+    <legend>Sizes &amp; stock</legend>
+    <p class="hint" ng-if="vm.isEdit">The API can update stock for existing sizes but can't add or remove sizes on a saved product.</p>
+    <div class="size-rows">
+      <div class="size-row" ng-repeat="row in vm.sizes" ng-class="{off: !row.on}">
+        <label class="check">
+          <input type="checkbox" ng-model="row.on" ng-change="vm.toggle(row)" ng-disabled="row.locked">
+          <strong>{{ row.size }}</strong>
+        </label>
+        <ng-form name="rowForm" ng-if="row.on">
+          <input name="stock" type="number" aria-label="Stock for size {{ row.size }}" ng-model="row.stock"
+                 required min="0" max="10000" step="1" tl-integer ng-class="{'has-error': showErrors(rowForm, 'stock')}">
+          <span class="errors inline" ng-messages="rowForm.stock.$error" ng-if="showErrors(rowForm, 'stock') || (productForm.$submitted && rowForm.stock.$invalid)" role="alert">
+            <span ng-message="required">Enter stock.</span>
+            <span ng-message="min">Can't be negative.</span>
+            <span ng-message="max">Max 10,000.</span>
+            <span ng-message="integer">Whole numbers only.</span>
+            <span ng-message="number">Enter a number.</span>
+          </span>
+          <span class="muted small" ng-if="vm.isEdit && row.original !== null && row.stock !== row.original && rowForm.stock.$valid">was {{ row.original }}</span>
+        </ng-form>
+      </div>
+    </div>
+    <input type="hidden" name="sizes" ng-model="vm.checks.sizes" tl-valid-if="vm.selectedCount() > 0" tl-valid-key="required">
+    <div class="errors" ng-messages="productForm.sizes.$error" ng-if="productForm.$submitted && productForm.sizes.$invalid" role="alert">
+      <span ng-message="required">Choose at least one size so customers can buy it.</span>
+    </div>
+  </fieldset>
+
+  <div class="actions">
+    <button type="submit" class="primary" ng-disabled="vm.saving">{{ vm.saving ? 'Saving…' : (vm.isEdit ? 'Save changes' : 'Create product') }}</button>
+    <a class="btn ghost" href="#!/admin/products">Cancel</a>
+  </div>
+</form>

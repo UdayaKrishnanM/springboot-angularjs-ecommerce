@@ -1,0 +1,91 @@
+<section class="auth">
+  <div class="auth-side">
+    <p class="eyebrow">Create account</p>
+    <h1 class="display">One account, every device you shop from.</h1>
+    <p class="muted">You can stay signed in on up to two devices at a time and manage them from your account page.</p>
+  </div>
+
+  <div class="card auth-card">
+    <h2>Create your account</h2>
+
+    <div class="alert alert-error" ng-if="vm.error" role="alert">{{ vm.error }}</div>
+
+    <form name="regForm" novalidate tl-focus-invalid ng-submit="vm.submit(regForm)">
+      <div class="field" ng-class="{invalid: showErrors(regForm, 'username')}">
+        <label for="reg-username">Name</label>
+        <input id="reg-username" name="username" type="text" autocomplete="name" ng-model="vm.form.username"
+               required tl-not-blank tl-username ng-minlength="3" ng-maxlength="50" ng-trim="true">
+        <small class="hint">3–50 characters. Letters, numbers, spaces, . _ -</small>
+        <div class="errors" ng-messages="regForm.username.$error" ng-if="showErrors(regForm, 'username')" role="alert">
+          <span ng-message="server">{{ regForm.username.$serverMessage }}</span>
+          <span ng-message="minlength">Name must be at least 3 characters.</span>
+          <span ng-message="maxlength">Name must be 50 characters or fewer.</span>
+          <span ng-message="username">Start with a letter; use only letters, numbers, spaces, dots, underscores or hyphens.</span>
+          <div ng-messages-include="tl-messages"></div>
+        </div>
+      </div>
+
+      <div class="field" ng-class="{invalid: showErrors(regForm, 'email')}">
+        <label for="reg-email">Email</label>
+        <input id="reg-email" name="email" type="email" autocomplete="email" ng-model="vm.form.email"
+               required tl-email ng-maxlength="120">
+        <div class="errors" ng-messages="regForm.email.$error" ng-if="showErrors(regForm, 'email')" role="alert">
+          <span ng-message="server">{{ regForm.email.$serverMessage }}</span>
+          <div ng-messages-include="tl-messages"></div>
+        </div>
+      </div>
+
+      <div class="field" ng-class="{invalid: showErrors(regForm, 'password')}">
+        <label for="reg-password">Password</label>
+        <input id="reg-password" name="password" type="password" autocomplete="new-password" ng-model="vm.form.password"
+               required ng-minlength="6" ng-maxlength="64" tl-strong-password ng-trim="false">
+        <tl-password-strength value="vm.form.password"></tl-password-strength>
+        <small class="hint" ng-if="!vm.form.password">At least 6 characters, with a letter and a number.</small>
+        <div class="errors" ng-messages="regForm.password.$error" ng-if="showErrors(regForm, 'password')" role="alert">
+          <span ng-message="server">{{ regForm.password.$serverMessage }}</span>
+          <span ng-message="minlength">Password must be at least 6 characters.</span>
+          <span ng-message="maxlength">Password must be 64 characters or fewer.</span>
+          <span ng-message="letter">Include at least one letter.</span>
+          <span ng-message="digit">Include at least one number.</span>
+          <span ng-message="spaces">Spaces aren't allowed.</span>
+          <div ng-messages-include="tl-messages"></div>
+        </div>
+      </div>
+
+      <div class="field" ng-class="{invalid: showErrors(regForm, 'confirm')}">
+        <label for="reg-confirm">Confirm password</label>
+        <input id="reg-confirm" name="confirm" type="password" autocomplete="new-password" ng-model="vm.form.confirm"
+               required tl-match="vm.form.password" ng-trim="false">
+        <div class="errors" ng-messages="regForm.confirm.$error" ng-if="showErrors(regForm, 'confirm')" role="alert">
+          <span ng-message="match">Passwords don't match.</span>
+          <div ng-messages-include="tl-messages"></div>
+        </div>
+      </div>
+
+      <fieldset class="field">
+        <legend>Account type</legend>
+        <div class="segmented">
+          <label><input type="radio" name="roles" ng-model="vm.form.roles" value="ROLE_USER"> Customer</label>
+          <label><input type="radio" name="roles" ng-model="vm.form.roles" value="ROLE_ADMIN"> Store admin</label>
+        </div>
+        <small class="hint" ng-if="vm.form.roles === 'ROLE_ADMIN'">Admins manage products, orders and reviews but can't shop. Lock this down before going live — see README.</small>
+      </fieldset>
+
+      <div class="field" ng-class="{invalid: showErrors(regForm, 'terms')}">
+        <label class="check">
+          <input type="checkbox" name="terms" ng-model="vm.form.terms" required>
+          I agree to the terms of service.
+        </label>
+        <div class="errors" ng-messages="regForm.terms.$error" ng-if="showErrors(regForm, 'terms')" role="alert">
+          <span ng-message="required">Please accept the terms to continue.</span>
+        </div>
+      </div>
+
+      <button type="submit" class="primary block" ng-disabled="vm.busy">
+        {{ vm.busy ? 'Creating account…' : 'Create account' }}
+      </button>
+    </form>
+
+    <p class="muted center">Already have an account? <a href="#!/login">Sign in</a></p>
+  </div>
+</section>

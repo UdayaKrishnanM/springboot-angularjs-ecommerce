@@ -1,0 +1,22 @@
+# Maven
+target/
+*.class
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Secrets - NEVER commit these
+src/main/resources/application.properties
+.env
+*.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Eclipse
+.settings/
+.project
+.classpath

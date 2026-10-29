@@ -1,0 +1,76 @@
+<div class="page-head">
+  <div>
+    <p class="eyebrow">Store admin</p>
+    <h1 class="display">Orders</h1>
+  </div>
+</div>
+
+<form name="lookupForm" class="card lookup" novalidate tl-focus-invalid ng-submit="vm.search(lookupForm)">
+  <div class="segmented" role="tablist">
+    <label><input type="radio" ng-model="vm.mode" value="email" ng-change="vm.orders = null"> By customer email</label>
+    <label><input type="radio" ng-model="vm.mode" value="id" ng-change="vm.orders = null"> By order number</label>
+  </div>
+
+  <div class="lookup-row">
+    <div class="field grow" ng-if="vm.mode === 'email'" ng-class="{invalid: showErrors(lookupForm, 'email')}">
+      <label for="lk-email" class="sr-only">Customer email</label>
+      <input id="lk-email" name="email" type="email" placeholder="customer@example.com" ng-model="vm.lookup.email" required tl-email>
+      <div class="errors" ng-messages="lookupForm.email.$error" ng-if="showErrors(lookupForm, 'email')" role="alert">
+        <div ng-messages-include="tl-messages"></div>
+      </div>
+    </div>
+    <div class="field grow" ng-if="vm.mode === 'id'" ng-class="{invalid: showErrors(lookupForm, 'orderId')}">
+      <label for="lk-id" class="sr-only">Order number</label>
+      <input id="lk-id" name="orderId" type="number" placeholder="Order number, e.g. 12" ng-model="vm.lookup.id" required min="1" step="1" tl-integer>
+      <div class="errors" ng-messages="lookupForm.orderId.$error" ng-if="showErrors(lookupForm, 'orderId')" role="alert">
+        <span ng-message="min">Order numbers start at 1.</span>
+        <div ng-messages-include="tl-messages"></div>
+      </div>
+    </div>
+    <button type="submit" class="primary" ng-disabled="vm.busy">{{ vm.busy ? 'Searching…' : 'Find orders' }}</button>
+  </div>
+  <p class="hint">The API has no "all orders" endpoint, so look orders up by customer or number.</p>
+</form>
+
+<div class="alert alert-error" ng-if="vm.error">{{ vm.error }}</div>
+
+<div class="empty" ng-if="vm.orders && !vm.orders.length">
+  <h3>No orders found</h3>
+  <p class="muted">Check the email or order number.</p>
+</div>
+
+<div class="orders">
+  <article class="card order" ng-repeat="o in vm.orders | orderBy:'-id'">
+    <header class="order-head">
+      <div>
+        <strong>Order #{{ o.id }}</strong>
+        <div class="muted small">{{ o.user.username }} · {{ o.user.email }} · {{ o.orderDate | javaDate }}</div>
+      </div>
+      <tl-status value="o.status"></tl-status>
+      <div class="order-total">{{ o.totalAmount | inr }}</div>
+    </header>
+
+    <table class="table compact">
+      <thead><tr><th>Item</th><th>Size</th><th class="num">Qty</th><th class="num">Subtotal</th></tr></thead>
+      <tbody>
+        <tr ng-repeat="i in o.items">
+          <td>{{ i.product.name }}</td><td>{{ i.product.sizeType }}</td><td class="num">{{ i.quantity }}</td><td class="num">{{ i.subtotal | inr }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <form name="statusForm" class="status-form" novalidate ng-submit="statusForm.$valid && vm.update(o)" ng-if="vm.nextStatuses(o).length">
+      <label for="st-{{ o.id }}" class="small">Move to</label>
+      <select id="st-{{ o.id }}" name="status" ng-model="vm.pending[o.id]" required
+              ng-options="s for s in vm.nextStatuses(o)">
+        <option value="">Choose status…</option>
+      </select>
+      <button type="submit" class="primary small" ng-disabled="vm.saving[o.id] || statusForm.$invalid">
+        {{ vm.saving[o.id] ? 'Saving…' : 'Update' }}
+      </button>
+      <span class="hint" ng-if="vm.pending[o.id] === 'SHIPPED' || vm.pending[o.id] === 'DELIVERED'">The customer will get an email.</span>
+      <span class="hint" ng-if="vm.pending[o.id] === 'PAID'">Only mark paid if you've confirmed the payment outside Razorpay.</span>
+    </form>
+    <p class="muted small" ng-if="!vm.nextStatuses(o).length">This order is {{ o.status | lowercase }}; no further changes.</p>
+  </article>
+</div>

@@ -1,0 +1,36 @@
+<div class="page-head">
+  <div>
+    <p class="eyebrow">Store admin</p>
+    <h1 class="display">Reviews</h1>
+  </div>
+  <p class="muted">{{ vm.reviews.length }} total</p>
+</div>
+
+<div class="toolbar">
+  <input type="search" ng-model="vm.q" placeholder="Search product, customer or text" aria-label="Search reviews">
+  <select ng-model="vm.minRating" aria-label="Rating filter">
+    <option value="">All ratings</option>
+    <option value="4">4★ and up</option>
+    <option value="3">3★ and up</option>
+    <option value="low">2★ and below</option>
+  </select>
+</div>
+
+<div class="loading" ng-if="vm.loading">Loading…</div>
+<div class="alert alert-error" ng-if="vm.error">{{ vm.error }}</div>
+
+<div class="table-wrap card" ng-if="!vm.loading && vm.reviews.length">
+  <table class="table">
+    <thead><tr><th>Product</th><th>Customer</th><th>Rating</th><th>Comment</th><th>Date</th></tr></thead>
+    <tbody>
+      <tr ng-repeat="r in vm.reviews | filter:vm.matches | orderBy:'-id'">
+        <td>{{ r.product.name }}</td>
+        <td>{{ r.user.username }}<div class="muted small">{{ r.user.email }}</div></td>
+        <td><tl-stars value="r.rating"></tl-stars></td>
+        <td class="wrap-text">{{ r.comment }}</td>
+        <td class="nowrap small">{{ r.reviewDate | javaDate:'d MMM yyyy' }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<div class="empty" ng-if="!vm.loading && !vm.reviews.length && !vm.error"><h3>No reviews yet</h3></div>

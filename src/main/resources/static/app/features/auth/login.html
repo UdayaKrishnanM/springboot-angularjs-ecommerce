@@ -1,0 +1,48 @@
+<section class="auth">
+  <div class="auth-side">
+    <p class="eyebrow">Threadline</p>
+    <h1 class="display">Clothes that fit the week you actually have.</h1>
+    <p class="muted">Sign in to browse the collection, keep a bag across devices, and track your orders.</p>
+  </div>
+
+  <div class="card auth-card">
+    <h2>Sign in</h2>
+
+    <div class="alert alert-error" ng-if="vm.error" role="alert">{{ vm.error }}</div>
+
+    <form name="loginForm" novalidate tl-focus-invalid ng-submit="vm.submit(loginForm)">
+      <div class="field" ng-class="{invalid: showErrors(loginForm, 'email')}">
+        <label for="login-email">Email</label>
+        <input id="login-email" name="email" type="email" autocomplete="email" ng-model="vm.form.email"
+               required tl-email ng-maxlength="120" autofocus>
+        <div class="errors" ng-messages="loginForm.email.$error" ng-if="showErrors(loginForm, 'email')" role="alert">
+          <span ng-message="server">{{ loginForm.email.$serverMessage }}</span>
+          <div ng-messages-include="tl-messages"></div>
+        </div>
+      </div>
+
+      <div class="field" ng-class="{invalid: showErrors(loginForm, 'password')}">
+        <div class="label-row">
+          <label for="login-password">Password</label>
+          <a href="#!/forgot-password" class="small">Forgot password?</a>
+        </div>
+        <div class="input-group">
+          <input id="login-password" name="password" type="{{ vm.showPassword ? 'text' : 'password' }}"
+                 autocomplete="current-password" ng-model="vm.form.password" required>
+          <button type="button" class="ghost small" ng-click="vm.showPassword = !vm.showPassword"
+                  aria-label="{{ vm.showPassword ? 'Hide' : 'Show' }} password">{{ vm.showPassword ? 'Hide' : 'Show' }}</button>
+        </div>
+        <div class="errors" ng-messages="loginForm.password.$error" ng-if="showErrors(loginForm, 'password')" role="alert">
+          <span ng-message="server">{{ loginForm.password.$serverMessage }}</span>
+          <div ng-messages-include="tl-messages"></div>
+        </div>
+      </div>
+
+      <button type="submit" class="primary block" ng-disabled="vm.busy">
+        {{ vm.busy ? 'Signing in…' : 'Sign in' }}
+      </button>
+    </form>
+
+    <p class="muted center">New here? <a href="#!/register">Create an account</a></p>
+  </div>
+</section>

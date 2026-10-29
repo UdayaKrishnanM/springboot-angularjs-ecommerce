@@ -1,0 +1,53 @@
+<div class="page-head">
+  <div>
+    <p class="eyebrow">Store admin</p>
+    <h1 class="display">Products</h1>
+  </div>
+  <a class="btn primary" href="#!/admin/products/new">+ New product</a>
+</div>
+
+<div class="toolbar">
+  <input type="search" ng-model="vm.q" placeholder="Search name or category" aria-label="Search products">
+  <select ng-model="vm.sort" aria-label="Sort">
+    <option value="name">Name</option>
+    <option value="price">Price ↑</option>
+    <option value="-price">Price ↓</option>
+    <option value="category">Category</option>
+  </select>
+</div>
+
+<div class="loading" ng-if="vm.loading">Loading…</div>
+<div class="alert alert-error" ng-if="vm.error">{{ vm.error }}</div>
+
+<div class="table-wrap card" ng-if="!vm.loading && vm.products.length">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Product</th><th>Category</th><th class="num">Price</th>
+        <th class="num" ng-repeat="s in vm.sizes">{{ s }}</th>
+        <th class="num">Total</th><th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr ng-repeat="p in vm.products | filter:vm.matches | orderBy:vm.sort">
+        <td><strong>{{ p.name }}</strong><div class="muted small clamp-1">{{ p.description }}</div></td>
+        <td>{{ p.category }}</td>
+        <td class="num">{{ p.price | inr }}</td>
+        <td class="num" ng-repeat="s in vm.sizes">
+          <span ng-if="vm.stockOf(p, s) === null" class="muted">–</span>
+          <span ng-if="vm.stockOf(p, s) !== null" ng-class="{'text-danger': vm.stockOf(p, s) <= vm.lowStock}">{{ vm.stockOf(p, s) }}</span>
+        </td>
+        <td class="num">{{ vm.totalStock(p) }}</td>
+        <td class="row-actions">
+          <a class="btn ghost small" href="#!/admin/products/{{ p.id }}/edit">Edit</a>
+          <button class="ghost small danger" tl-confirm="Delete &quot;{{ p.name }}&quot;? This can't be undone." tl-confirm-action="vm.remove(p)">Delete</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="empty" ng-if="!vm.loading && !vm.products.length && !vm.error">
+  <h3>No products yet</h3>
+  <a class="btn primary" href="#!/admin/products/new">Add your first product</a>
+</div>

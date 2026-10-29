@@ -1,0 +1,52 @@
+<p><a href="#!/orders" class="back">← All orders</a></p>
+
+<div class="loading" ng-if="vm.loading">Loading…</div>
+<div class="alert alert-error" ng-if="vm.error" role="alert">{{ vm.error }}</div>
+
+<div class="pay" ng-if="vm.order">
+  <section class="card">
+    <div class="order-head">
+      <div>
+        <p class="eyebrow">Payment</p>
+        <h1 class="display">Order #{{ vm.order.id }}</h1>
+        <div class="muted small">{{ vm.order.orderDate | javaDate }}</div>
+      </div>
+      <tl-status value="vm.order.status"></tl-status>
+    </div>
+
+    <table class="table compact">
+      <thead><tr><th>Item</th><th>Size</th><th class="num">Qty</th><th class="num">Subtotal</th></tr></thead>
+      <tbody>
+        <tr ng-repeat="i in vm.order.items">
+          <td>{{ i.product.name }}</td><td>{{ i.product.sizeType }}</td>
+          <td class="num">{{ i.quantity }}</td><td class="num">{{ i.subtotal | inr }}</td>
+        </tr>
+      </tbody>
+      <tfoot><tr><td colspan="3"><strong>Total</strong></td><td class="num"><strong>{{ vm.order.totalAmount | inr }}</strong></td></tr></tfoot>
+    </table>
+  </section>
+
+  <aside class="card">
+    <div ng-if="vm.order.status === 'PENDING' && !vm.result">
+      <h2>Pay {{ vm.order.totalAmount | inr }}</h2>
+      <p class="muted">Card, UPI or net banking through Razorpay.</p>
+      <button type="button" class="primary block" ng-click="vm.pay()" ng-disabled="vm.busy">{{ vm.busy ? 'Starting payment…' : 'Pay now' }}</button>
+      <button type="button" class="ghost block danger" tl-confirm="Cancel this order?" tl-confirm-action="vm.cancel()">Cancel order</button>
+
+      <div class="alert alert-info" ng-if="vm.stub">
+        <strong>Payments are in demo mode.</strong>
+        The backend returned <code>{{ vm.session.razorpayOrderId }}</code>, a placeholder from the stub in
+        <code>PaymentService.initiatePayment</code>. To take real test payments, add <code>razorpay-java</code>
+        to <code>pom.xml</code>, uncomment the SDK lines there, and set <code>RAZORPAY_KEY_ID</code> /
+        <code>RAZORPAY_KEY_SECRET</code>. This page will then open Razorpay Checkout and verify the signature automatically.
+      </div>
+    </div>
+
+    <div ng-if="vm.result" class="alert" ng-class="vm.result.ok ? 'alert-success' : 'alert-error'">{{ vm.result.message }}</div>
+
+    <div ng-if="vm.order.status !== 'PENDING' && !vm.result">
+      <h2>Nothing to pay</h2>
+      <p class="muted">This order is {{ vm.order.status | lowercase }}.</p>
+    </div>
+  </aside>
+</div>

@@ -1,0 +1,68 @@
+<div class="page-head">
+  <div>
+    <p class="eyebrow">Checkout</p>
+    <h1 class="display">Your bag</h1>
+  </div>
+</div>
+
+<div class="loading" ng-if="vm.loading">Loading…</div>
+
+<div class="empty" ng-if="!vm.loading && !vm.cart.items.length">
+  <h3>Your bag is empty</h3>
+  <p class="muted">Find something you like and it'll show up here.</p>
+  <a class="btn primary" href="#!/shop">Go shopping</a>
+</div>
+
+<div class="cart" ng-if="!vm.loading && vm.cart.items.length">
+  <ul class="cart-lines">
+    <li class="cart-line" ng-repeat="item in vm.cart.items track by item.id" ng-class="{busy: vm.busyId === item.id, problem: vm.problem(item)}">
+      <tl-swatch name="item.product.name" category="item.product.category" size="sm"></tl-swatch>
+      <div class="cart-info">
+        <a href="#!/product/{{ item.productId }}"><strong>{{ item.product.name }}</strong></a>
+        <div class="muted small">{{ item.product.price | inr }} each</div>
+        <label class="inline small">
+          Size
+          <select ng-model="item.product.sizeType"
+                  ng-options="s for s in vm.sizesFor(item)" ng-change="vm.changeSize(item)"
+                  ng-disabled="vm.busyId"></select>
+        </label>
+        <div class="errors" ng-if="vm.problem(item)" role="alert">{{ vm.problem(item) }}</div>
+      </div>
+      <div class="stepper" role="group" aria-label="Quantity for {{ item.product.name }}">
+        <button type="button" ng-click="vm.dec(item)" ng-disabled="vm.busyId || item.quantity <= 1" aria-label="Decrease">−</button>
+        <span aria-live="polite">{{ item.quantity }}</span>
+        <button type="button" ng-click="vm.inc(item)" ng-disabled="vm.busyId" aria-label="Increase">+</button>
+      </div>
+      <div class="line-total">{{ item.quantity * item.product.price | inr }}</div>
+      <button type="button" class="linklike danger small" ng-click="vm.remove(item)" ng-disabled="vm.busyId">Remove</button>
+    </li>
+  </ul>
+
+  <aside class="summary card">
+    <h2>Summary</h2>
+    <dl>
+      <dt>Items</dt><dd>{{ vm.cart.count() }}</dd>
+      <dt>Subtotal</dt><dd>{{ vm.cart.total() | inr }}</dd>
+      <dt>Delivery</dt><dd>Free</dd>
+      <dt class="total">Total</dt><dd class="total">{{ vm.cart.total() | inr }}</dd>
+    </dl>
+
+    <div class="alert alert-error" ng-if="vm.error" role="alert">{{ vm.error }}</div>
+
+    <form name="checkoutForm" novalidate tl-focus-invalid ng-submit="vm.checkout(checkoutForm)">
+      <div class="field" ng-class="{invalid: showErrors(checkoutForm, 'ack')}">
+        <label class="check small">
+          <input type="checkbox" name="ack" ng-model="vm.ack" required>
+          I've checked sizes and quantities.
+        </label>
+        <div class="errors" ng-messages="checkoutForm.ack.$error" ng-if="showErrors(checkoutForm, 'ack')" role="alert">
+          <span ng-message="required">Please confirm before placing your order.</span>
+        </div>
+      </div>
+      <button type="submit" class="primary block" ng-disabled="vm.placing || vm.busyId">
+        {{ vm.placing ? 'Placing order…' : 'Place order' }}
+      </button>
+    </form>
+    <p class="muted small">You'll pay on the next step. Stock is held once the order is placed.</p>
+  </aside>
+</div>

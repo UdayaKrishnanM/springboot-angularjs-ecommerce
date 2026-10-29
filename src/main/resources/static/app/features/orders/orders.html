@@ -1,0 +1,53 @@
+<div class="page-head">
+  <div>
+    <p class="eyebrow">Your account</p>
+    <h1 class="display">Orders</h1>
+  </div>
+  <div class="field inline" ng-if="vm.orders.length">
+    <label for="o-status" class="small muted">Status</label>
+    <select id="o-status" ng-model="vm.statusFilter">
+      <option value="">All</option>
+      <option ng-repeat="s in vm.statuses()" value="{{ s }}">{{ s }}</option>
+    </select>
+  </div>
+</div>
+
+<div class="loading" ng-if="vm.loading">Loading…</div>
+<div class="alert alert-error" ng-if="vm.error">{{ vm.error }}</div>
+
+<div class="empty" ng-if="!vm.loading && !vm.orders.length && !vm.error">
+  <h3>No orders yet</h3>
+  <p class="muted">When you place an order it'll appear here.</p>
+  <a class="btn primary" href="#!/shop">Start shopping</a>
+</div>
+
+<div class="orders">
+  <article class="card order" ng-repeat="o in vm.orders | filter:(vm.statusFilter ? {status: vm.statusFilter} : undefined) | orderBy:vm.sortKey">
+    <header class="order-head">
+      <div>
+        <strong>Order #{{ o.id }}</strong>
+        <div class="muted small">{{ o.orderDate | javaDate }}</div>
+      </div>
+      <tl-status value="o.status"></tl-status>
+      <div class="order-total">{{ o.totalAmount | inr }}</div>
+    </header>
+
+    <button type="button" class="linklike small" ng-click="vm.open[o.id] = !vm.open[o.id]" aria-expanded="{{ !!vm.open[o.id] }}">
+      {{ vm.open[o.id] ? 'Hide' : 'Show' }} {{ o.items.length }} item{{ o.items.length === 1 ? '' : 's' }}
+    </button>
+    <table class="table compact" ng-if="vm.open[o.id]">
+      <thead><tr><th>Item</th><th>Size</th><th class="num">Qty</th><th class="num">Price</th><th class="num">Subtotal</th></tr></thead>
+      <tbody>
+        <tr ng-repeat="i in o.items">
+          <td>{{ i.product.name }}</td><td>{{ i.product.sizeType }}</td>
+          <td class="num">{{ i.quantity }}</td><td class="num">{{ i.price | inr }}</td><td class="num">{{ i.subtotal | inr }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="actions" ng-if="vm.canPay(o)">
+      <a class="btn primary small" href="#!/pay/{{ o.id }}">Pay now</a>
+      <button type="button" class="ghost small danger" tl-confirm="Cancel order #{{ o.id }}? This can't be undone." tl-confirm-action="vm.cancel(o)">Cancel order</button>
+    </div>
+  </article>
+</div>

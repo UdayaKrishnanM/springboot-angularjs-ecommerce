@@ -1,0 +1,94 @@
+<div class="page-head">
+  <div>
+    <p class="eyebrow">The collection</p>
+    <h1 class="display">Shop</h1>
+  </div>
+  <p class="muted" ng-if="vm.result">{{ vm.result.totalElements }} item{{ vm.result.totalElements === 1 ? '' : 's' }}</p>
+</div>
+
+<div class="catalog">
+  <aside class="filters card">
+    <form name="filterForm" novalidate tl-focus-invalid ng-submit="vm.apply(filterForm)">
+      <div class="field">
+        <label for="f-name">Search</label>
+        <input id="f-name" name="name" type="search" placeholder="Product name" ng-model="vm.filters.name" ng-maxlength="60">
+        <div class="errors" ng-messages="filterForm.name.$error" ng-if="showErrors(filterForm, 'name')">
+          <span ng-message="maxlength">Keep the search under 60 characters.</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="f-cat">Category</label>
+        <select id="f-cat" name="category" ng-model="vm.filters.category" ng-change="vm.apply(filterForm)">
+          <option value="">All categories</option>
+          <option ng-repeat="c in vm.categories" value="{{ c }}">{{ c }}</option>
+        </select>
+      </div>
+
+      <fieldset class="field">
+        <legend>Price (₹)</legend>
+        <div class="row-2">
+          <div ng-class="{invalid: showErrors(filterForm, 'minPrice')}">
+            <label for="f-min" class="sr-only">Minimum price</label>
+            <input id="f-min" name="minPrice" type="number" placeholder="Min" min="0" step="1"
+                   ng-model="vm.filters.minPrice" tl-not-greater-than="vm.filters.maxPrice">
+          </div>
+          <div ng-class="{invalid: showErrors(filterForm, 'maxPrice')}">
+            <label for="f-max" class="sr-only">Maximum price</label>
+            <input id="f-max" name="maxPrice" type="number" placeholder="Max" min="0" step="1" ng-model="vm.filters.maxPrice">
+          </div>
+        </div>
+        <div class="errors" ng-messages="filterForm.minPrice.$error" ng-if="showErrors(filterForm, 'minPrice')" role="alert">
+          <span ng-message="range">Min price can't be more than max price.</span>
+          <span ng-message="min">Price can't be negative.</span>
+          <span ng-message="number">Enter a number.</span>
+        </div>
+        <div class="errors" ng-messages="filterForm.maxPrice.$error" ng-if="showErrors(filterForm, 'maxPrice')" role="alert">
+          <span ng-message="min">Price can't be negative.</span>
+          <span ng-message="number">Enter a number.</span>
+        </div>
+      </fieldset>
+
+      <div class="field">
+        <label for="f-sort">Sort by</label>
+        <select id="f-sort" ng-model="vm.filters.sort" ng-options="s as s.label for s in vm.sorts" ng-change="vm.apply(filterForm)"></select>
+      </div>
+
+      <div class="field">
+        <label for="f-size">Per page</label>
+        <select id="f-size" ng-model="vm.filters.size" ng-options="n for n in vm.pageSizes" ng-change="vm.apply(filterForm)"></select>
+      </div>
+
+      <button type="submit" class="primary block">Apply</button>
+      <button type="button" class="ghost block" ng-if="vm.hasFilters()" ng-click="vm.clear(filterForm)">Clear filters</button>
+    </form>
+  </aside>
+
+  <section class="results" aria-live="polite">
+    <div class="alert alert-error" ng-if="vm.error">{{ vm.error }} <button class="linklike" ng-click="vm.load()">Retry</button></div>
+
+    <div class="grid" ng-class="{dim: vm.loading}">
+      <a class="product-card" ng-repeat="p in vm.result.content" href="#!/product/{{ p.id }}">
+        <tl-swatch name="p.name" category="p.category"></tl-swatch>
+        <div class="product-meta">
+          <h3>{{ p.name }}</h3>
+          <p class="muted clamp">{{ p.description }}</p>
+          <p class="price">{{ p.price | inr }}</p>
+        </div>
+      </a>
+    </div>
+
+    <div class="empty" ng-if="vm.result && !vm.result.content.length && !vm.loading">
+      <h3>Nothing matches those filters</h3>
+      <p class="muted">Try a wider price range or another category.</p>
+      <button class="ghost" ng-click="vm.clear(filterForm)">Clear filters</button>
+    </div>
+
+    <nav class="pager" ng-if="vm.result && vm.result.totalPages > 1" aria-label="Pages">
+      <button class="ghost" ng-disabled="vm.result.first" ng-click="vm.go(vm.page - 1)">← Prev</button>
+      <button ng-repeat="i in vm.pages()" ng-class="{current: i === vm.page}" class="ghost" ng-click="vm.go(i)"
+              aria-current="{{ i === vm.page ? 'page' : undefined }}">{{ i + 1 }}</button>
+      <button class="ghost" ng-disabled="vm.result.last" ng-click="vm.go(vm.page + 1)">Next →</button>
+    </nav>
+  </section>
+</div>

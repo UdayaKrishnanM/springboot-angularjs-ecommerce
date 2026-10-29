@@ -1,0 +1,122 @@
+<p><a href="#!/shop" class="back">← Back to shop</a></p>
+
+<div class="loading" ng-if="vm.loading">Loading…</div>
+
+<div class="empty" ng-if="!vm.loading && !vm.product">
+  <h3>We couldn't find that product</h3>
+  <p class="muted">It may have been removed.</p>
+  <a class="btn ghost" href="#!/shop">Browse the shop</a>
+</div>
+
+<article class="product" ng-if="vm.product">
+  <tl-swatch name="vm.product.name" category="vm.product.category" size="lg"></tl-swatch>
+
+  <div class="product-info">
+    <p class="eyebrow">{{ vm.product.category }}</p>
+    <h1 class="display">{{ vm.product.name }}</h1>
+    <p class="price big">{{ vm.product.price | inr }}</p>
+    <p class="rating-line" ng-if="vm.reviews.length">
+      <tl-stars value="vm.average"></tl-stars>
+      <span class="muted">{{ vm.average | number:1 }} · {{ vm.reviews.length }} review{{ vm.reviews.length === 1 ? '' : 's' }}</span>
+    </p>
+    <p>{{ vm.product.description }}</p>
+
+    <form name="buyForm" novalidate tl-focus-invalid ng-submit="vm.addToCart(buyForm)" class="buy">
+      <fieldset class="field" ng-class="{invalid: showErrors(buyForm, 'size')}">
+        <legend>Size</legend>
+        <div class="sizes" role="radiogroup">
+          <button type="button" ng-repeat="s in vm.product.sizes" class="size"
+                  ng-class="{selected: vm.order.size === s.size, out: s.stockQuantity <= 0}"
+                  ng-disabled="s.stockQuantity <= 0" role="radio" aria-checked="{{ vm.order.size === s.size }}"
+                  ng-click="vm.pickSize(s, buyForm)">{{ s.size }}</button>
+        </div>
+        <p class="muted small" ng-if="!vm.product.sizes.length">No sizes have been set up for this product yet.</p>
+        <small class="hint" ng-if="vm.order.size && vm.stockFor(vm.order.size) <= 5">
+          Only {{ vm.stockFor(vm.order.size) }} left in {{ vm.order.size }}.
+        </small>
+        <input type="hidden" name="size" ng-model="vm.checks.size" tl-valid-if="!!vm.order.size" tl-valid-key="required">
+        <div class="errors" ng-messages="buyForm.size.$error" ng-if="showErrors(buyForm, 'size')" role="alert">
+          <span ng-message="required">Pick a size.</span>
+        </div>
+      </fieldset>
+
+      <div class="field qty" ng-class="{invalid: showErrors(buyForm, 'quantity')}">
+        <label for="p-qty">Quantity</label>
+        <input id="p-qty" name="quantity" type="number" ng-model="vm.order.quantity"
+               required min="1" ng-max="vm.maxQty()" step="1" tl-integer>
+        <div class="errors" ng-messages="buyForm.quantity.$error" ng-if="showErrors(buyForm, 'quantity')" role="alert">
+          <span ng-message="min">Quantity must be at least 1.</span>
+          <span ng-message="max">You can add up to {{ vm.maxQty() }}<span ng-if="vm.order.size"> in size {{ vm.order.size }}</span>.</span>
+          <div ng-messages-include="tl-messages"></div>
+        </div>
+      </div>
+
+      <button type="submit" class="primary" ng-disabled="vm.busy || !vm.product.sizes.length">
+        {{ vm.busy ? 'Adding…' : 'Add to bag' }}
+      </button>
+      <p class="muted small" ng-if="vm.inCart()">
+        In your bag: {{ vm.inCart().quantity }} × {{ vm.inCart().product.sizeType }}. Adding a different size replaces it.
+        <a href="#!/cart">View bag</a>
+      </p>
+    </form>
+  </div>
+</article>
+
+<section class="reviews" ng-if="vm.product">
+  <h2>Reviews</h2>
+
+  <div class="card review-mine" ng-if="vm.mine && !vm.editing">
+    <div class="review-head">
+      <strong>Your review</strong>
+      <tl-stars value="vm.mine.rating"></tl-stars>
+    </div>
+    <p>{{ vm.mine.comment }}</p>
+    <div class="actions">
+      <button class="ghost small" ng-click="vm.startEdit()">Edit</button>
+      <button class="ghost small danger" tl-confirm="Delete your review?" tl-confirm-action="vm.deleteReview()">Delete</button>
+    </div>
+  </div>
+
+  <form name="reviewForm" class="card" novalidate tl-focus-invalid ng-if="!vm.mine || vm.editing" ng-submit="vm.submitReview(reviewForm)">
+    <h3>{{ vm.editing ? 'Edit your review' : 'Write a review' }}</h3>
+    <div class="alert alert-error" ng-if="vm.reviewError" role="alert">{{ vm.reviewError }}</div>
+
+    <div class="field" ng-class="{invalid: showErrors(reviewForm, 'rating')}">
+      <label>Rating</label>
+      <tl-star-input name="rating" ng-model="vm.reviewForm.rating" required></tl-star-input>
+      <div class="errors" ng-messages="reviewForm.rating.$error" ng-if="showErrors(reviewForm, 'rating')" role="alert">
+        <span ng-message="required">Choose 1 to 5 stars.</span>
+      </div>
+    </div>
+
+    <div class="field" ng-class="{invalid: showErrors(reviewForm, 'comment')}">
+      <label for="r-comment">Comment</label>
+      <textarea id="r-comment" name="comment" rows="4" ng-model="vm.reviewForm.comment"
+                required tl-not-blank ng-minlength="10" ng-maxlength="500"
+                placeholder="How was the fit, fabric and quality?"></textarea>
+      <small class="hint counter" ng-class="{over: (reviewForm.comment.$viewValue || '').length > 500}">{{ (reviewForm.comment.$viewValue || '').length }}/500</small>
+      <div class="errors" ng-messages="reviewForm.comment.$error" ng-if="showErrors(reviewForm, 'comment')" role="alert">
+        <span ng-message="minlength">Write at least 10 characters.</span>
+        <span ng-message="maxlength">Keep it to 500 characters.</span>
+        <div ng-messages-include="tl-messages"></div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button type="submit" class="primary" ng-disabled="vm.reviewBusy">{{ vm.reviewBusy ? 'Saving…' : (vm.editing ? 'Save changes' : 'Post review') }}</button>
+      <button type="button" class="ghost" ng-if="vm.editing" ng-click="vm.cancelEdit(reviewForm)">Cancel</button>
+    </div>
+  </form>
+
+  <ul class="review-list">
+    <li ng-repeat="r in vm.reviews | orderBy:'-id'" ng-if="!vm.mine || r.id !== vm.mine.id">
+      <div class="review-head">
+        <strong>{{ r.user.username }}</strong>
+        <tl-stars value="r.rating"></tl-stars>
+        <span class="muted small">{{ r.reviewDate | javaDate:'d MMM yyyy' }}</span>
+      </div>
+      <p>{{ r.comment }}</p>
+    </li>
+  </ul>
+  <p class="muted" ng-if="!vm.reviews.length">No reviews yet.</p>
+</section>

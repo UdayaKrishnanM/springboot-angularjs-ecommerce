@@ -1,0 +1,67 @@
+<div class="page-head">
+  <div>
+    <p class="eyebrow">Settings</p>
+    <h1 class="display">Account</h1>
+  </div>
+</div>
+
+<div class="account">
+  <section class="card">
+    <h2>Profile</h2>
+    <dl class="kv">
+      <dt>Name</dt><dd>{{ vm.user.username }}</dd>
+      <dt>Email</dt><dd>{{ vm.user.email }}</dd>
+      <dt>Account type</dt><dd>{{ vm.user.roles === 'ROLE_ADMIN' ? 'Store admin' : 'Customer' }}</dd>
+    </dl>
+    <p class="small"><button type="button" class="linklike" ng-click="vm.changePassword()">Change password</button> <span class="muted">(signs you out and emails you a code)</span></p>
+  </section>
+
+  <section class="card">
+    <h2>Signed-in devices</h2>
+    <div class="alert alert-error" ng-if="vm.devicesFull">
+      You're already signed in on {{ vm.maxDevices }} devices. Remove one below, then register this device.
+    </div>
+    <p class="muted small">Up to {{ vm.maxDevices }} devices can be signed in at once. {{ vm.activeCount() }} active now.</p>
+
+    <div class="loading" ng-if="vm.loadingDevices">Loading…</div>
+    <ul class="devices" ng-if="!vm.loadingDevices">
+      <li ng-repeat="d in vm.devices">
+        <div>
+          <strong>{{ d.deviceName || 'Unknown device' }}</strong>
+          <span class="pill st-paid" ng-if="d.deviceId === vm.thisDevice">This device</span>
+          <div class="muted small">{{ d.location }} · {{ d.loggedIn ? 'Signed in' : 'Signed out' }}</div>
+        </div>
+        <button type="button" class="ghost small danger" ng-if="d.deviceId !== vm.thisDevice"
+                tl-confirm="Remove {{ d.deviceName }}? It will need to sign in again." tl-confirm-action="vm.remove(d)">Remove</button>
+      </li>
+      <li ng-if="!vm.devices.length" class="muted">No devices recorded.</li>
+    </ul>
+    <button type="button" class="ghost" ng-if="!vm.loadingDevices && !vm.thisRegistered()" ng-click="vm.registerThis()">Register this device</button>
+  </section>
+
+  <section class="card danger-zone">
+    <h2>Delete account</h2>
+    <p class="muted">This permanently deletes your account. It can't be undone.</p>
+    <div class="alert alert-error" ng-if="vm.deleteError" role="alert">{{ vm.deleteError }}</div>
+    <form name="delForm" novalidate tl-focus-invalid ng-submit="vm.deleteAccount(delForm)">
+      <div class="field" ng-class="{invalid: showErrors(delForm, 'password')}">
+        <label for="del-pw">Your password</label>
+        <input id="del-pw" name="password" type="password" autocomplete="current-password" ng-model="vm.del.password" required ng-trim="false">
+        <div class="errors" ng-messages="delForm.password.$error" ng-if="showErrors(delForm, 'password')" role="alert">
+          <span ng-message="server">{{ delForm.password.$serverMessage }}</span>
+          <div ng-messages-include="tl-messages"></div>
+        </div>
+      </div>
+      <div class="field" ng-class="{invalid: showErrors(delForm, 'confirmText')}">
+        <label for="del-confirm">Type <strong>DELETE</strong> to confirm</label>
+        <input id="del-confirm" name="confirmText" type="text" autocomplete="off" ng-model="vm.del.confirmText"
+               required ng-pattern="/^DELETE$/">
+        <div class="errors" ng-messages="delForm.confirmText.$error" ng-if="showErrors(delForm, 'confirmText')" role="alert">
+          <span ng-message="pattern">Type DELETE in capital letters.</span>
+          <div ng-messages-include="tl-messages"></div>
+        </div>
+      </div>
+      <button type="submit" class="danger-btn" ng-disabled="vm.deleting">{{ vm.deleting ? 'Deleting…' : 'Delete my account' }}</button>
+    </form>
+  </section>
+</div>

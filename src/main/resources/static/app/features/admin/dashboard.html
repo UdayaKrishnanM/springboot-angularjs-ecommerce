@@ -1,0 +1,51 @@
+<div class="page-head">
+  <div>
+    <p class="eyebrow">Store admin</p>
+    <h1 class="display">Overview</h1>
+  </div>
+  <a class="btn primary" href="#!/admin/products/new">+ New product</a>
+</div>
+
+<div class="loading" ng-if="vm.loading">Loading…</div>
+<div class="alert alert-error" ng-if="vm.error">{{ vm.error }}</div>
+
+<div ng-if="!vm.loading && !vm.error">
+  <div class="stats">
+    <div class="stat card"><span class="stat-label">Products</span><span class="stat-value">{{ vm.productCount }}</span></div>
+    <div class="stat card"><span class="stat-label">Units in stock</span><span class="stat-value">{{ vm.unitCount | number }}</span></div>
+    <div class="stat card"><span class="stat-label">Reviews</span><span class="stat-value">{{ vm.reviewCount }}</span></div>
+    <div class="stat card"><span class="stat-label">Average rating</span><span class="stat-value">{{ vm.reviewCount ? (vm.avgRating | number:1) : '—' }}</span></div>
+  </div>
+
+  <div class="two-col">
+    <section class="card">
+      <h2>Low stock <span class="muted small">(5 or fewer)</span></h2>
+      <table class="table compact" ng-if="vm.lowStock.length">
+        <thead><tr><th>Product</th><th>Size</th><th class="num">Left</th><th></th></tr></thead>
+        <tbody>
+          <tr ng-repeat="r in vm.lowStock | limitTo:10">
+            <td>{{ r.product.name }}</td><td>{{ r.size }}</td>
+            <td class="num"><span ng-class="{'text-danger': r.stock === 0}">{{ r.stock }}</span></td>
+            <td class="num"><a href="#!/admin/products/{{ r.product.id }}/edit" class="small">Restock</a></td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="muted" ng-if="!vm.lowStock.length">Everything is well stocked.</p>
+      <p class="alert alert-info small" ng-if="vm.noSizes.length">
+        {{ vm.noSizes.length }} product{{ vm.noSizes.length === 1 ? ' has' : 's have' }} no sizes, so customers can't buy {{ vm.noSizes.length === 1 ? 'it' : 'them' }}.
+      </p>
+    </section>
+
+    <section class="card">
+      <h2>Latest reviews</h2>
+      <ul class="review-list">
+        <li ng-repeat="r in vm.recentReviews">
+          <div class="review-head"><strong>{{ r.product.name }}</strong><tl-stars value="r.rating"></tl-stars></div>
+          <p class="small">{{ r.comment }} <span class="muted">— {{ r.user.username }}</span></p>
+        </li>
+      </ul>
+      <p class="muted" ng-if="!vm.recentReviews.length">No reviews yet.</p>
+      <a href="#!/admin/reviews" class="small">All reviews →</a>
+    </section>
+  </div>
+</div>

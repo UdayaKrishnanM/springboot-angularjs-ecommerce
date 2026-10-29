@@ -1,0 +1,27 @@
+<div class="page-head">
+  <div>
+    <p class="eyebrow">Your account</p>
+    <h1 class="display">Your reviews</h1>
+  </div>
+</div>
+
+<div class="loading" ng-if="vm.loading">Loading…</div>
+<div class="alert alert-error" ng-if="vm.error">{{ vm.error }}</div>
+
+<div class="empty" ng-if="!vm.loading && !vm.reviews.length && !vm.error">
+  <h3>You haven't reviewed anything yet</h3>
+  <p class="muted">Once an order arrives, open the product page to leave a review.</p>
+  <a class="btn ghost" href="#!/orders">See your orders</a>
+</div>
+
+<ul class="review-list cards">
+  <li class="card" ng-repeat="r in vm.reviews">
+    <div class="review-head">
+      <strong>{{ r.product.name }}</strong>
+      <tl-stars value="r.rating"></tl-stars>
+      <span class="muted small">{{ r.reviewDate | javaDate:'d MMM yyyy' }}</span>
+    </div>
+    <p>{{ r.comment }}</p>
+    <a class="small" ng-if="vm.productId(r)" href="#!/product/{{ vm.productId(r) }}">Edit or delete on product page →</a>
+  </li>
+</ul>

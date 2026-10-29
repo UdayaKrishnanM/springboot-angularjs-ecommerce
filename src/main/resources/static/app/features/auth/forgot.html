@@ -1,0 +1,75 @@
+<section class="auth narrow">
+  <div class="card auth-card">
+    <ol class="steps" aria-label="Progress">
+      <li ng-class="{done: vm.step > 1, current: vm.step === 1}">Email</li>
+      <li ng-class="{done: vm.step > 2, current: vm.step === 2}">Code</li>
+      <li ng-class="{current: vm.step === 3}">New password</li>
+    </ol>
+
+    <div class="alert alert-error" ng-if="vm.error" role="alert">{{ vm.error }}</div>
+    <div class="alert alert-info" ng-if="vm.info">{{ vm.info }}</div>
+
+    <!-- Step 1 -->
+    <form name="emailForm" novalidate tl-focus-invalid ng-if="vm.step === 1" ng-submit="vm.sendCode(emailForm)">
+      <h2>Reset your password</h2>
+      <p class="muted">Enter the email on your account and we'll send you a 6-digit code.</p>
+      <div class="field" ng-class="{invalid: showErrors(emailForm, 'email')}">
+        <label for="fp-email">Email</label>
+        <input id="fp-email" name="email" type="email" autocomplete="email" ng-model="vm.form.email" required tl-email autofocus>
+        <div class="errors" ng-messages="emailForm.email.$error" ng-if="showErrors(emailForm, 'email')" role="alert">
+          <span ng-message="server">{{ emailForm.email.$serverMessage }}</span>
+          <div ng-messages-include="tl-messages"></div>
+        </div>
+      </div>
+      <button type="submit" class="primary block" ng-disabled="vm.busy">{{ vm.busy ? 'Sending…' : 'Send code' }}</button>
+    </form>
+
+    <!-- Step 2 -->
+    <form name="otpForm" novalidate tl-focus-invalid ng-if="vm.step === 2" ng-submit="vm.checkCode(otpForm)">
+      <h2>Enter the code</h2>
+      <div class="field" ng-class="{invalid: showErrors(otpForm, 'otp')}">
+        <label for="fp-otp">6-digit code</label>
+        <input id="fp-otp" name="otp" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6"
+               class="otp" ng-model="vm.form.otp" required tl-otp autofocus>
+        <small class="hint" ng-if="vm.secondsLeft">Expires in {{ vm.timeLeft() }}</small>
+        <div class="errors" ng-messages="otpForm.otp.$error" ng-if="showErrors(otpForm, 'otp')" role="alert">
+          <span ng-message="server">{{ otpForm.otp.$serverMessage }}</span>
+          <span ng-message="otp">The code is 6 digits, like 482913.</span>
+          <div ng-messages-include="tl-messages"></div>
+        </div>
+      </div>
+      <button type="submit" class="primary block" ng-disabled="vm.busy">{{ vm.busy ? 'Checking…' : 'Verify code' }}</button>
+      <button type="button" class="ghost block" ng-click="vm.restart()">Use a different email</button>
+    </form>
+
+    <!-- Step 3 -->
+    <form name="pwForm" novalidate tl-focus-invalid ng-if="vm.step === 3" ng-submit="vm.savePassword(pwForm)">
+      <h2>Choose a new password</h2>
+      <div class="field" ng-class="{invalid: showErrors(pwForm, 'password')}">
+        <label for="fp-pw">New password</label>
+        <input id="fp-pw" name="password" type="password" autocomplete="new-password" ng-model="vm.form.password"
+               required ng-minlength="6" ng-maxlength="64" tl-strong-password ng-trim="false" autofocus>
+        <tl-password-strength value="vm.form.password"></tl-password-strength>
+        <div class="errors" ng-messages="pwForm.password.$error" ng-if="showErrors(pwForm, 'password')" role="alert">
+          <span ng-message="minlength">Password must be at least 6 characters.</span>
+          <span ng-message="letter">Include at least one letter.</span>
+          <span ng-message="digit">Include at least one number.</span>
+          <span ng-message="spaces">Spaces aren't allowed.</span>
+          <div ng-messages-include="tl-messages"></div>
+        </div>
+      </div>
+      <div class="field" ng-class="{invalid: showErrors(pwForm, 'repeat')}">
+        <label for="fp-repeat">Repeat new password</label>
+        <input id="fp-repeat" name="repeat" type="password" autocomplete="new-password" ng-model="vm.form.repeat"
+               required tl-match="vm.form.password" ng-trim="false">
+        <div class="errors" ng-messages="pwForm.repeat.$error" ng-if="showErrors(pwForm, 'repeat')" role="alert">
+          <span ng-message="match">Passwords don't match.</span>
+          <div ng-messages-include="tl-messages"></div>
+        </div>
+      </div>
+      <button type="submit" class="primary block" ng-disabled="vm.busy">{{ vm.busy ? 'Saving…' : 'Save new password' }}</button>
+    </form>
+
+    <p class="muted center"><a href="#!/login">Back to sign in</a></p>
+  </div>
+</section>
